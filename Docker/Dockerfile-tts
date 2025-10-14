@@ -1,0 +1,35 @@
+# Use the official Python image as the base image
+FROM python:3.10-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install PostgreSQL development tools and other system dependencies
+RUN apt-get update && apt-get install -y libpq-dev gcc ffmpeg libsndfile1
+
+# Copy the shared directories to the container
+COPY shared/ /app/shared/
+
+# Copy the environment variables file
+#COPY vars.env .env
+
+# Copy the requirements file into the container
+COPY services/requirements_tts.txt .
+
+# Install Python dependencies
+RUN pip install -r requirements_tts.txt
+
+# Set the FLASK_APP environment variable to point to the Flask application
+ENV FLASK_APP=services/tts_api.py
+
+# Add /app to the Python path to resolve module imports
+ENV PYTHONPATH=/app
+
+# Ensure Flask picks up the correct environment variables
+#ENV DATABASE_URL=postgresql://postgres:mypassword@postgres_tts:5432/tts_service
+
+# Expose the port for Flask API
+EXPOSE 8504
+
+# Start the Flask app and Celery worker
+CMD ["sh", "-c", "celery -A services.tts_api.celery worker --loglevel=info -Q tts --concurrency=8 & flask run --host=0.0.0.0 --port=8504"]

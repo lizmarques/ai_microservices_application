@@ -1,0 +1,38 @@
+# Use the official Python image as the base image
+FROM python:3.10-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install PostgreSQL development tools and other system dependencies
+RUN apt-get update && apt-get install -y libpq-dev gcc ffmpeg libsndfile1 git
+
+# Install Whisper
+RUN pip install "git+https://github.com/openai/whisper.git" 
+
+# Copy the services and shared directories to the container
+COPY shared/ /app/shared/
+
+# Copy the environment variables file
+#COPY vars.env .env
+
+# Copy the requirements file into the container
+COPY services/requirements_stt.txt .
+
+# Install Python dependencies
+RUN pip install -r requirements_stt.txt
+
+# Set the FLASK_APP environment variable to point to the Flask application
+ENV FLASK_APP=services/stt_api.py
+
+# Add /app to the Python path to resolve module imports
+ENV PYTHONPATH=/app
+
+# Ensure Flask picks up the correct environment variables
+#ENV DATABASE_URL=postgresql://postgres:mypassword@postgres_stt:5432/stt_service
+
+# Expose the port for Flask API
+EXPOSE 8502
+
+# Start the Flask app and Celery worker
+CMD ["sh", "-c", "celery -A services.stt_api.celery worker --loglevel=info -Q stt & flask run --host=0.0.0.0 --port=8502"]

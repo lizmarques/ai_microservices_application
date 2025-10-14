@@ -1,0 +1,272 @@
+#version: "3.8"
+
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+      - "8082:8082"  # Expose Prometheus Metrics
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml
+      - ./traefik/acme.json:/acme.json
+    networks:
+      - backend
+    command:
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.entrypoint=metrics"
+      - "--entrypoints.metrics.address=:8082"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    networks:
+      - backend
+
+  redis_exporter:
+    image: oliver006/redis_exporter
+    container_name: redis_exporter
+    restart: always
+    environment:
+      REDIS_ADDR: "redis:6379"
+    ports:
+      - "9121:9121"
+    networks:
+      - backend
+
+  postgres_stt:
+    image: postgres:15
+    container_name: postgres_stt
+    restart: always
+    environment:
+      POSTGRES_DB: stt_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_stt_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  postgres_tts:
+    image: postgres:15
+    container_name: postgres_tts
+    restart: always
+    environment:
+      POSTGRES_DB: tts_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_tts_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo_llm
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: llm_service
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - backend
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    networks:
+      - backend
+    depends_on:
+      - postgres_stt
+      - postgres_tts
+
+  stt:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile-stt
+    environment:
+      POSTGRES_DB: stt_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_HOST: postgres_stt
+      POSTGRES_PORT: 5432
+    volumes:
+      - ./services:/app/services
+    depends_on:
+      - redis
+      - postgres_stt
+    networks:
+      - backend
+    ports:
+      - "8502:8502"  
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.stt.rule=PathPrefix(`/stt`)"
+      - "traefik.http.routers.task_status_stt.rule=PathPrefix(`/task_status_stt`)"
+      - "traefik.http.routers.metrics_stt.rule=PathPrefix(`/metrics`)"
+      - "traefik.http.services.stt.loadbalancer.server.port=8502"
+
+  llm:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile-llm
+    environment:
+      MONGO_HOST: mongo
+      MONGO_PORT: 27017
+      MONGO_DB: llm_service
+      HF_TOKEN: ${HF_TOKEN}
+    volumes:
+      - ./services:/app/services
+      - ./.env:/app/.env
+    depends_on:
+      - redis
+      - mongo
+    networks:
+      - backend
+    ports:
+      - "8503:8503" 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.llm.rule=PathPrefix(`/llm`)"
+      - "traefik.http.routers.task_status_llm.rule=PathPrefix(`/task_status_llm`)"
+      - "traefik.http.routers.metrics_llm.rule=PathPrefix(`/metrics`)"
+      - "traefik.http.services.llm.loadbalancer.server.port=8503"
+
+  tts:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile-tts
+    environment:
+      POSTGRES_DB: tts_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_HOST: postgres_tts
+      POSTGRES_PORT: 5432
+    volumes:
+      - ./services:/app/services
+    depends_on:
+      - redis
+      - postgres_tts
+    networks:
+      - backend
+    ports:
+      - "8504:8504"  
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tts.rule=PathPrefix(`/tts`)"
+      - "traefik.http.routers.task_status_tts.rule=PathPrefix(`/task_status_tts`)"
+      - "traefik.http.routers.get_audio.rule=PathPrefix(`/get_audio`)"
+      - "traefik.http.routers.metrics_tts.rule=PathPrefix(`/metrics`)"
+      - "traefik.http.services.tts.loadbalancer.server.port=8504"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    volumes:
+      - ./frontend:/app/frontend
+    depends_on:
+      - stt
+      - llm
+      - tts
+    ports:
+      - "8505:8505"
+      - "8506:8506"
+    networks:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.services.frontend.loadbalancer.server.port=8505"
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - backend
+
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile-worker
+    depends_on:
+      - redis
+      - stt
+      - llm
+      - tts
+    networks:
+      - backend
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+  locust:
+    build:
+      context: .
+      dockerfile: locust/Dockerfile-locust
+    volumes:
+      - ./locust/locustfile.py:/mnt/locust/locustfile.py
+    depends_on:
+      - traefik
+      - tts
+      - stt
+      - llm
+      - frontend
+    ports:
+      - "8089:8089"
+    command: >
+      -f /mnt/locust/locustfile.py --host http://traefik
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  postgres_stt_data:
+  postgres_tts_data:
+  mongo_data:
+  grafana_data:

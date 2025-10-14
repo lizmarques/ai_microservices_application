@@ -1,0 +1,28 @@
+# Use a lightweight Python base image
+FROM python:3.10-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y build-essential && apt-get clean
+
+# Copy the requirements file and install dependencies
+COPY services/requirements_worker.txt ./requirements_worker.txt
+RUN pip install --no-cache-dir -r requirements_worker.txt
+
+# Install Prometheus Exporter for Celery
+RUN pip install celery-prometheus-exporter
+
+# Copy the entire services directory (including STT, LLM, and TTS)
+COPY ./services /app/services
+
+# Set environment variables for Celery
+ENV CELERY_BROKER_URL=redis://redis:6379/0
+ENV CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+# # Start the Celery worker and autodiscover all tasks
+# CMD ["celery", "-A", "services.celery_worker", "worker", "--loglevel=info"]
+
+# Start Celery worker and Prometheus exporter
+CMD ["sh", "-c", "celery -A services.celery_worker worker --loglevel=info & celery-prometheus-exporter --addr 0.0.0.0:5555"]

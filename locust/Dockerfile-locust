@@ -1,0 +1,18 @@
+# Use an official Python image
+FROM python:3.9
+
+# Set the working directory inside the container
+WORKDIR /mnt/locust
+
+# Copy Locust requirements and install dependencies
+COPY locust/requirements_locust.txt .
+RUN pip install --no-cache-dir -r requirements_locust.txt
+
+# Copy the Locust test file
+COPY locust/locustfile.py .
+
+# Copy test audio file from services directory
+COPY services/stt_audio_01.wav .
+
+# Set Locust as the default command
+ENTRYPOINT ["locust"]

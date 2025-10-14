@@ -1,0 +1,68 @@
+tcc_docker_rest/
+│
+├── services/                 # Microservices APIs
+│   ├── stt_api.py          # Speech-to-Text service (Whisper)
+│   ├── llm_api.py          # Language model service (Qwen 2.5 72B)
+│   ├── tts_api.py          # Text-to-Speech service (gTTS)
+│   ├── celery_worker.py    # Celery worker configuration
+│   ├── requirements_stt.txt # STT service dependencies
+│   ├── requirements_llm.txt # LLM service dependencies
+│   ├── requirements_tts.txt # TTS service dependencies
+│   ├── requirements_worker.txt # Worker dependencies
+│   └── stt_audio_01.wav    # Test audio file for load testing
+│
+├── frontend/               # Streamlit web interface
+│   ├── streamlit_app.py   # Main Streamlit application
+│   ├── Dockerfile         # Frontend container configuration
+│   └── requirements_streamlit.txt # Frontend dependencies
+│
+├── Docker/                 # Docker configurations
+│   ├── Dockerfile-stt     # STT service container
+│   ├── Dockerfile-llm     # LLM service container
+│   ├── Dockerfile-tts     # TTS service container
+│   └── Dockerfile-worker  # Worker service container
+│
+├── locust/                # Load testing
+│   ├── locustfile.py      # Locust test scenarios
+│   ├── Dockerfile-locust  # Locust container
+│   └── requirements_locust.txt # Locust dependencies
+│
+├── monitoring/             # Monitoring configuration
+│   └── prometheus.yml
+│
+├── traefik/               # API Gateway configuration
+│   ├── traefik.yml
+│   └── acme.json
+│
+├── shared/                # Shared utilities
+│   └── celery_config.py
+│
+├── images/                # Application assets
+│   ├── sound_logo.jpg
+│   ├── grafico_requisicoes.png
+│   └── grafico_requisicoes_seaborn.png
+│
+├── scenario_01/            # Test scenario 1 results
+│   ├── scenario_01_locust.ipynb
+│   ├── Locust_2025-02-04-01h25_locustfile.py_http___traefik_requests.csv
+│   ├── Locust_2025-02-04-01h25_locustfile.py_http___traefik.html
+│   ├── metrics_report.csv
+│   ├── number_of_users_1738632878.541.png
+│   ├── response_times_(ms)_1738632878.533.png
+│   └── total_requests_per_second_1738632878.524.png
+│
+├── scenario_02/            # Test scenario 2 results
+│   ├── scenario_02_locust.ipynb
+│   ├── Locust_2025-02-04-18h09_locustfile.py_http___traefik_failures.csv
+│   ├── Locust_2025-02-04-18h09_locustfile.py_http___traefik_requests.csv
+│   ├── Locust_2025-02-04-18h09_locustfile.py_http___traefik.html
+│   ├── Scenario 2 - Total Failures per Endpoint.png
+│   ├── Scenario 2 - Total Requests per Endpoint.png
+│   ├── number_of_users_1738693050.494.png
+│   ├── response_times_(ms)_1738693050.465.png
+│   └── total_requests_per_second_1738693050.432.png
+│
+├── docker-compose.yml    # Main orchestration
+├── .gitignore            # Git ignore rules
+├── file_structure.txt    # This file
+└── README.md             # Documentation

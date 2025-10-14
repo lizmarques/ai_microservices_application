@@ -1,0 +1,71 @@
+global:
+  scrape_interval: 5s  # Collect metrics every 5 seconds
+
+scrape_configs:
+  # 🔹 STT API
+  - job_name: 'stt_api'
+    static_configs:
+      - targets: ['stt:8502']
+
+  # 🔹 LLM API
+  - job_name: 'llm_api'
+    static_configs:
+      - targets: ['llm:8503']
+
+  # 🔹 TTS API
+  - job_name: 'tts_api'
+    static_configs:
+      - targets: ['tts:8504']
+
+  # 🔹 Frontend (if exposing metrics)
+  - job_name: 'frontend'
+    static_configs:
+      - targets: ['frontend:8506']
+
+
+  # ✅ 🔹 Monitor Celery Workers
+  - job_name: 'celery_worker'
+    static_configs:
+      - targets: ['celery_worker:5555']  # Exposes metrics if configured
+
+  # ✅ 🔹 Monitor Redis (Celery Backend)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis_exporter:9121']
+
+  # ✅ 🔹 Monitor Traefik API Gateway
+  - job_name: 'traefik'
+    metrics_path: '/metrics'  # Ensure Traefik is exposing metrics
+    static_configs:
+      - targets: ['traefik:8082']
+
+  # ✅ 🔹 Monitor Prometheus Itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+
+
+# global:
+#   scrape_interval: 5s
+
+# scrape_configs:
+#   - job_name: 'stt_api'
+#     static_configs:
+#       - targets: ['stt:8502']
+
+#   - job_name: 'llm_api'
+#     static_configs:
+#       - targets: ['llm:8503']
+
+#   - job_name: 'tts_api'
+#     static_configs:
+#       - targets: ['tts:8504']
+
+#   - job_name: 'frontend'
+#     static_configs:
+#       - targets: ['frontend:8506']
+
+#   - job_name: 'cadvisor'
+#     static_configs:
+#       - targets: ['cadvisor:8080']
