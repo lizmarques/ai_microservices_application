@@ -52,7 +52,6 @@ The platform consists of the following microservices:
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/lizmarques/ai-microservices-application.git
-   cd ai-microservices-platform
    ```
 
 2. **Start the application:**
