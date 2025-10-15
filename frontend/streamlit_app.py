@@ -137,7 +137,7 @@ if audio_bytes:
         task_id = stt_response.json()['task_id']
         transcription = poll_task_status(STATUS_STT_API_URL, task_id)
         if transcription:
-            st.write(f"**Transcribed text:** {transcription}")
+            st.write(f"**Text transcription:** {transcription}")
 
             llm_response = requests.post(LLM_API_URL, json={"text": transcription})
             if llm_response.status_code == 200:
