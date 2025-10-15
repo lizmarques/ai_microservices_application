@@ -4,6 +4,25 @@ A comprehensive microservices-based platform that demonstrates the efficiency of
 
 > **Note**: While the main goal is to evaluate the efficiency of microservices architecture for AI applications, a user-friendly Streamlit frontend has been built to allow people to interact with the application and experience the complete AI workflow in real-time.
 
+## 🏗️ Architecture Overview
+
+<p align="center">
+  <img src="./images/application_architecture_v3.PNG" alt="Application Microservices Architecture" width="70%" /><br>
+  <em>Figure 1 – Microservices Architecture of the Application</em>
+</p>
+
+The platform consists of the following microservices:
+
+- **STT Service**: Converts audio files to text using OpenAI Whisper
+- **LLM Service**: Processes text queries using Qwen2-72B-Instruct model
+- **TTS Service**: Converts text to speech using Google Text-to-Speech (gTTS)
+- **Frontend (Web App)**: Streamlit-based web interface for user interaction
+- **API Gateway**: Traefik for load balancing and routing
+- **Message Queue**: Redis for task queuing and Celery for asynchronous processing
+- **Databases**: PostgreSQL for STT/TTS data, MongoDB for LLM data
+- **Monitoring**: Prometheus and Grafana for observability
+- **Load Testing**: Locust for performance testing
+
 ## 🎯 **AI Models Used**
 
 ### **Speech-to-Text (STT)**: OpenAI Whisper
@@ -24,19 +43,21 @@ A comprehensive microservices-based platform that demonstrates the efficiency of
 - **Features**: Multilingual support, customizable voice parameters
 - **Use Case**: Converts LLM responses back to audio for user interaction
 
-## 🏗️ Architecture Overview
+## 🔄 **Complete AI Workflow**
 
-The platform consists of the following microservices:
+The application demonstrates a complete AI conversation pipeline:
 
-- **STT Service**: Converts audio files to text using OpenAI Whisper
-- **LLM Service**: Processes text queries using Qwen2-72B-Instruct model
-- **TTS Service**: Converts text to speech using Google Text-to-Speech (gTTS)
-- **Frontend**: Streamlit-based web interface for user interaction
-- **API Gateway**: Traefik for load balancing and routing
-- **Message Queue**: Redis for task queuing and Celery for asynchronous processing
-- **Databases**: PostgreSQL for STT/TTS data, MongoDB for LLM data
-- **Monitoring**: Prometheus and Grafana for observability
-- **Load Testing**: Locust for performance testing
+1. **🎤 Audio Input**: User records audio via the Streamlit frontend interface
+2. **📝 STT Processing**: Audio is sent to the STT service (Whisper) for transcription
+3. **🧠 LLM Processing**: Transcribed text is processed by the LLM service (Qwen 2.5 72B)
+4. **🔊 TTS Generation**: LLM response is converted to speech using gTTS
+5. **🎵 Audio Output**: Generated audio is automatically played back to the user
+
+### **User Experience**
+- **Interactive Interface**: Clean, intuitive Streamlit web application
+- **Real-time Processing**: Asynchronous task processing with status updates
+- **Seamless Integration**: Complete AI conversation in a single workflow
+- **Performance Monitoring**: Built-in metrics and monitoring for efficiency analysis
 
 ## 🚀 Quick Start
 
@@ -98,6 +119,24 @@ The platform consists of the following microservices:
 | Prometheus | 9090 | Metrics collection |
 | Grafana | 3000 | Monitoring dashboard |
 
+## 📊 API Endpoints
+
+### STT Service
+- `POST /stt` - Upload audio file for transcription
+- `GET /task_status_stt/{task_id}` - Check transcription status
+- `GET /metrics` - Prometheus metrics
+
+### LLM Service
+- `POST /llm` - Send text for LLM processing
+- `GET /task_status_llm/{task_id}` - Check LLM processing status
+- `GET /metrics` - Prometheus metrics
+
+### TTS Service
+- `POST /tts` - Send text for speech generation
+- `GET /task_status_tts/{task_id}` - Check TTS generation status
+- `GET /get_audio/{filename}` - Download generated audio file
+- `GET /metrics` - Prometheus metrics
+
 ## 🔧 Configuration
 
 ### Environment Variables
@@ -117,7 +156,7 @@ The application uses environment variables for configuration. Key variables incl
 - **TTS Service**: Uses PostgreSQL with `tts_results` table  
 - **LLM Service**: Uses MongoDB with `llm_queries` collection
 
-## 🧪 Testing & Performance
+## 🧪 Load Testing & Monitoring
 
 ### Load Testing with Locust
 
@@ -136,77 +175,6 @@ The application includes comprehensive load testing capabilities:
 3. **Test Scenarios:**
    - **Scenario 1**: Light load (10 users, 1 user/second, 5 minutes)
    - **Scenario 2**: Heavy load (50+ users, stress testing)
-
-## 📊 API Endpoints
-
-### STT Service
-- `POST /stt` - Upload audio file for transcription
-- `GET /task_status_stt/{task_id}` - Check transcription status
-- `GET /metrics` - Prometheus metrics
-
-### LLM Service
-- `POST /llm` - Send text for LLM processing
-- `GET /task_status_llm/{task_id}` - Check LLM processing status
-- `GET /metrics` - Prometheus metrics
-
-### TTS Service
-- `POST /tts` - Send text for speech generation
-- `GET /task_status_tts/{task_id}` - Check TTS generation status
-- `GET /get_audio/{filename}` - Download generated audio file
-- `GET /metrics` - Prometheus metrics
-
-## 🔄 **Complete AI Workflow**
-
-The application demonstrates a complete AI conversation pipeline:
-
-1. **🎤 Audio Input**: User records audio via the Streamlit frontend interface
-2. **📝 STT Processing**: Audio is sent to the STT service (Whisper) for transcription
-3. **🧠 LLM Processing**: Transcribed text is processed by the LLM service (Qwen 2.5 72B)
-4. **🔊 TTS Generation**: LLM response is converted to speech using gTTS
-5. **🎵 Audio Output**: Generated audio is automatically played back to the user
-
-### **User Experience**
-- **Interactive Interface**: Clean, intuitive Streamlit web application
-- **Real-time Processing**: Asynchronous task processing with status updates
-- **Seamless Integration**: Complete AI conversation in a single workflow
-- **Performance Monitoring**: Built-in metrics and monitoring for efficiency analysis
-
-## 🛠️ Development
-
-### Project Structure
-
-```
-├── services/                 # Microservices APIs
-│   ├── stt_api.py          # Speech-to-Text service (Whisper)
-│   ├── llm_api.py          # Language model service (Qwen 2.5 72B)
-│   ├── tts_api.py          # Text-to-Speech service (gTTS)
-│   ├── celery_worker.py    # Celery worker configuration
-│   ├── requirements_stt.txt # STT service dependencies
-│   ├── requirements_llm.txt # LLM service dependencies
-│   ├── requirements_tts.txt # TTS service dependencies
-│   └── requirements_worker.txt # Worker dependencies
-├── frontend/               # Streamlit web interface
-│   ├── streamlit_app.py   # Main Streamlit application
-│   ├── Dockerfile         # Frontend container configuration
-│   └── requirements_streamlit.txt # Frontend dependencies
-├── Docker/                 # Docker configurations
-│   ├── Dockerfile-stt     # STT service container
-│   ├── Dockerfile-llm     # LLM service container
-│   ├── Dockerfile-tts     # TTS service container
-│   └── Dockerfile-worker  # Worker service container
-├── locust/                # Load testing
-│   ├── locustfile.py      # Locust test scenarios
-│   ├── Dockerfile-locust  # Locust container
-│   └── requirements_locust.txt # Locust dependencies
-├── monitoring/             # Monitoring configuration
-│   └── prometheus.yml
-├── traefik/               # API Gateway configuration
-│   └── traefik.yml
-├── shared/                # Shared utilities
-│   └── celery_config.py
-├── docker-compose.yml     # Main orchestration
-└── README.md             # This documentation
-```
 
 ## 🎯 **Research Focus**
 
@@ -229,12 +197,6 @@ The system enables human–machine interaction through live speech, leveraging t
 
 Each service runs independently and communicates through REST APIs managed by an **API Gateway** (Traefik). Every microservice has its own database—**PostgreSQL** for structured data and **MongoDB** for LLM responses—following the *database-per-service* pattern to ensure autonomy and isolation.  
 All services are containerized via **Docker Compose**, allowing horizontal and vertical scalability.
-
-### 🧩 Architecture Overview
-<p align="center">
-  <img src="./images/application_architecture_v3.PNG" alt="Application Microservices Architecture" width="70%" /><br>
-  <em>Figure 1 – Microservices Architecture of the Application</em>
-</p>
 
 ---
 
@@ -327,4 +289,41 @@ However, **STT** emerged as the main bottleneck due to higher computational dema
 
 - The **modular microservices architecture** proved efficient and resilient under both light and heavy load conditions.  
 - **Independent databases and containerization** contributed to isolation and recoverability.  
-- **STT performance** directly influenced total pipeline latency, suggesting optimization or asynchronous queuing strategies (e.g., Celery) could further enhance scalability.  
+- **STT performance** directly influenced total pipeline latency, suggesting optimization or asynchronous queuing strategies (e.g., Celery) could further enhance scalability.
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+├── services/                 # Microservices APIs
+│   ├── stt_api.py          # Speech-to-Text service (Whisper)
+│   ├── llm_api.py          # Language model service (Qwen 2.5 72B)
+│   ├── tts_api.py          # Text-to-Speech service (gTTS)
+│   ├── celery_worker.py    # Celery worker configuration
+│   ├── requirements_stt.txt # STT service dependencies
+│   ├── requirements_llm.txt # LLM service dependencies
+│   ├── requirements_tts.txt # TTS service dependencies
+│   └── requirements_worker.txt # Worker dependencies
+├── frontend/               # Streamlit web interface
+│   ├── streamlit_app.py   # Main Streamlit application
+│   ├── Dockerfile         # Frontend container configuration
+│   └── requirements_streamlit.txt # Frontend dependencies
+├── Docker/                 # Docker configurations
+│   ├── Dockerfile-stt     # STT service container
+│   ├── Dockerfile-llm     # LLM service container
+│   ├── Dockerfile-tts     # TTS service container
+│   └── Dockerfile-worker  # Worker service container
+├── locust/                # Load testing
+│   ├── locustfile.py      # Locust test scenarios
+│   ├── Dockerfile-locust  # Locust container
+│   └── requirements_locust.txt # Locust dependencies
+├── monitoring/             # Monitoring configuration
+│   └── prometheus.yml
+├── traefik/               # API Gateway configuration
+│   └── traefik.yml
+├── shared/                # Shared utilities
+│   └── celery_config.py
+├── docker-compose.yml     # Main orchestration
+└── README.md             # This documentation
+```
