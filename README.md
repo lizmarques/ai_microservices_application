@@ -40,19 +40,11 @@ The platform consists of the following microservices:
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Docker Desktop installed and running
-- Git (to clone the repository)
-- At least 8GB RAM available for Docker
-- Ports 80, 443, 8080, 8082, 3000, 5050, 5433, 5434, 8089, 8502-8506, 9090, 9121 available
-
 ### Installation
 
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/lizmarques/ai-microservices-application.git
-   cd ai-microservices-platform
    ```
 
 2. **Start the application:**
@@ -64,8 +56,18 @@ The platform consists of the following microservices:
    ```bash
    docker-compose ps
    ```
-
-4. **Access the application:**
+4. **Rebuild specific services:**
+   ```bash
+   # Rebuild STT service
+   docker-compose build stt
+   
+   # Rebuild all services
+   docker-compose build
+   
+   # Rebuild and restart
+   docker-compose up --build
+   ```
+5. **Access the application:**
    - **Main Application (Streamlit Frontend)**: http://localhost:443
    - **Traefik Dashboard**: http://localhost:8080
    - **Grafana Monitoring**: http://localhost:3000
@@ -95,7 +97,6 @@ The platform consists of the following microservices:
 | PgAdmin | 5050 | PostgreSQL administration |
 | Prometheus | 9090 | Metrics collection |
 | Grafana | 3000 | Monitoring dashboard |
-| cAdvisor | 8081 | Container metrics |
 
 ## 🔧 Configuration
 
@@ -135,13 +136,6 @@ The application includes comprehensive load testing capabilities:
 3. **Test Scenarios:**
    - **Scenario 1**: Light load (10 users, 1 user/second, 5 minutes)
    - **Scenario 2**: Heavy load (50+ users, stress testing)
-
-### Monitoring & Metrics
-
-- **Prometheus**: Collects metrics from all services
-- **Grafana**: Visualizes performance data and system health
-- **Custom Metrics**: Request counts, latency, audio/text sizes
-- **Container Metrics**: CPU, memory, and network usage via cAdvisor
 
 ## 📊 API Endpoints
 
@@ -214,22 +208,6 @@ The application demonstrates a complete AI conversation pipeline:
 └── README.md             # This documentation
 ```
 
-### Building Services
-
-To rebuild specific services:
-
-```bash
-# Rebuild STT service
-docker-compose build stt
-
-# Rebuild all services
-docker-compose build
-
-# Rebuild and restart
-docker-compose up --build
-```
-
-
 ## 🎯 **Research Focus**
 
 This project serves as a comprehensive study of microservices architecture efficiency for AI applications, featuring:
@@ -240,7 +218,113 @@ This project serves as a comprehensive study of microservices architecture effic
 - **Scalability Studies**: Analysis of service scaling and resource utilization
 - **Efficiency Metrics**: Detailed performance measurements and optimization insights
 
-## 📝 License
+## 🧪 Experimental Methodology & Results
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This research follows an **exploratory and quantitative experimental design**, evaluating the **efficiency and scalability** of a real-time AI application based on a **microservices architecture**.  
+The system enables human–machine interaction through live speech, leveraging three core services:
 
+- **STT (Speech-to-Text)** – transcribes the user’s audio input  
+- **LLM (Large Language Model)** – generates textual responses  
+- **TTS (Text-to-Speech)** – converts text back into synthesized speech  
+
+Each service runs independently and communicates through REST APIs managed by an **API Gateway** (Traefik). Every microservice has its own database—**PostgreSQL** for structured data and **MongoDB** for LLM responses—following the *database-per-service* pattern to ensure autonomy and isolation.  
+All services are containerized via **Docker Compose**, allowing horizontal and vertical scalability.
+
+### 🧩 Architecture Overview
+<p align="center">
+  <img src="./images/application_architecture_v3.PNG" alt="Application Microservices Architecture" width="70%" /><br>
+  <em>Figure 1 – Microservices Architecture of the Application</em>
+</p>
+
+---
+
+### ⚙️ Experimental Setup
+
+Performance tests were executed with **Locust**, simulating real-time requests to measure:
+- Total pipeline latency (STT → LLM → TTS)  
+- Individual service latency  
+- Throughput (Requests per Second – RPS)  
+- Error rate and stability under load  
+
+Two controlled scenarios were evaluated using the same input prompt in portuguese, **“Quem fundou a Apple? (Who founded Apple?)”**, to ensure consistency.
+
+---
+
+## 📈 Performance Results
+
+### **Scenario 1 – Low Load (10 Concurrent Users)**
+
+This baseline test evaluated latency and overhead under light traffic.  
+The system processed requests smoothly, maintaining an average total latency **below 1.5 seconds** with **no failed requests**.  
+The API Gateway introduced minimal overhead (<100ms), and REST communication proved efficient.
+
+<p align="center">
+  <img src="./images/graph_s1_rps_v3.PNG" alt="Total Requests per Second – Scenario 1" /><br>
+  <em>Figure 2 – Total Requests per Second (Low Load)</em>
+</p>
+
+<br><br>
+
+<p align="center">
+  <img src="./images/graph_s1_latency_v3.PNG" alt="Response Times – Scenario 1" /><br>
+  <em>Figure 3 – Response Times (Low Load)</em>
+</p>
+
+
+✅ **Key Findings**  
+- Consistent latency and stability across all services  
+- No observed bottlenecks  
+- REST-based communication and API Gateway overhead negligible  
+
+---
+
+### **Scenario 2 – High Load (500 Concurrent Users)**
+
+The stress test simulated high concurrency to evaluate scalability and fault tolerance.  
+Throughput peaked at **~30 requests per second**, stabilizing after approximately 3 minutes.  
+However, **STT** emerged as the main bottleneck due to higher computational demands, resulting in increased latency and temporary saturation.
+
+<p align="center">
+  <img src="./images/graph_s2_rps_v3.PNG" alt="Total Requests per Second – Scenario 2" /><br>
+  <em>Figure 4 – Total Requests per Second (High Load)</em>
+</p>
+
+<br><br>
+
+<p align="center">
+  <img src="./images/graph_s2_latency_v3.PNG" alt="Response Times – Scenario 2" /><br>
+  <em>Figure 5 – Response Times (High Load)</em>
+</p>
+
+<br><br>
+
+<p align="center">
+  <img src="./images/graph_s2_failures_v3.png" alt="Failures per Endpoint" /><br>
+  <em>Figure 6 – Total Failures per Endpoint (High Load)</em>
+</p>
+
+✅ **Key Findings**  
+- The **STT** service reached latency peaks (~10s) during initial load spikes, confirming it as the main computational bottleneck  
+- The **LLM** and **TTS** services maintained stable performance  
+- The **API Gateway** added slight latency overhead under heavy load but remained operational  
+- The system sustained **~30 RPS** after stabilization, validating the architecture’s scalability potential  
+
+---
+
+### 📊 Summary
+
+| Metric | Scenario 1 (Low Load) | Scenario 2 (High Load) |
+|:--|:--:|:--:|
+| Average Pipeline Latency | < 1.5 s | 3–4 s (after stabilization) |
+| API Gateway Overhead | < 100 ms | < 250 ms |
+| Throughput | 1–3 RPS | ~30 RPS |
+| Success Rate | 100% | 95–97% (temporary errors during spikes) |
+| Main Bottleneck | None | STT service |
+
+---
+
+### 🧠 Interpretation
+
+- The **modular microservices architecture** proved efficient and resilient under both light and heavy load conditions.  
+- **Independent databases and containerization** contributed to isolation and recoverability.  
+- **STT performance** directly influenced total pipeline latency, suggesting optimization or asynchronous queuing strategies (e.g., Celery) could further enhance scalability.  
