@@ -4,6 +4,8 @@ A comprehensive microservices-based platform that demonstrates the efficiency of
 
 > **Note**: While the main goal is to evaluate the efficiency of microservices architecture for AI applications, a user-friendly Streamlit frontend has been built to allow people to interact with the application and experience the complete AI workflow in real-time.
 
+## 🎥 Application Demo
+
 ## 🏗️ Architecture Overview
 
 <p align="center">
@@ -90,7 +92,6 @@ The application demonstrates a complete AI conversation pipeline:
    ```
 5. **Access the application:**
    - **Main Application (Streamlit Frontend)**: http://localhost:443
-   - **Traefik Dashboard**: http://localhost:8080
    - **Grafana Monitoring**: http://localhost:3000
    - **Prometheus Metrics**: http://localhost:9090
    - **PgAdmin**: http://localhost:5050
