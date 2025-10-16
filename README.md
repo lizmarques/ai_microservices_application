@@ -6,6 +6,11 @@ A comprehensive microservices-based platform that demonstrates the efficiency of
 
 ## 🎥 Application Demo
 
+Watch a short demonstration of the complete AI microservices workflow in action:
+
+🎬 [Watch the Demo Video](https://raw.githubusercontent.com/lizmarques/ai_microservices_application/main/video/ai_microservices_application_demo.mp4)
+
+
 ## 🏗️ Architecture Overview
 
 <p align="center">
