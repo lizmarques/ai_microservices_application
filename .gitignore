@@ -236,6 +236,9 @@ cenario_02/
 !Dockerfile*
 !docker-compose*.yml
 
+# --- ALLOW VIDEO DEMO FILE ---
+!video/ai_microservices_application_demo.mp4
+
 # Jupyter notebook outputs
 *.ipynb
 !SCENARY_01_LOCUST.ipynb
