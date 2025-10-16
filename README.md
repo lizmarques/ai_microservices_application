@@ -6,9 +6,10 @@ A comprehensive microservices-based platform that demonstrates the efficiency of
 
 ## 🎥 Application Demo
 
-Watch a short demonstration of the complete AI microservices workflow in action:
+Watch a short demonstration of the complete AI microservices workflow in action:  
+> 🔊 **Remember to enable audio for the full experience!**
 
-🎬 [Watch the Demo Video](https://raw.githubusercontent.com/lizmarques/ai_microservices_application/main/video/ai_microservices_application_demo.mp4)
+https://github.com/user-attachments/assets/73edeed9-651b-440c-967f-a7495de4a648
 
 
 ## 🏗️ Architecture Overview
@@ -86,14 +87,14 @@ The application demonstrates a complete AI conversation pipeline:
    ```
 4. **Rebuild specific services:**
    ```bash
-   # Rebuild STT service
-   docker-compose build stt
+   # Build and start the LLM service in detached mode (rebuilds the image if needed)
+    docker compose up -d --build llm
    
    # Rebuild all services
-   docker-compose build
+   docker compose build
    
    # Rebuild and restart
-   docker-compose up --build
+   docker compose up --build
    ```
 5. **Access the application:**
    - **Main Application (Streamlit Frontend)**: http://localhost:443
@@ -168,17 +169,12 @@ The application uses environment variables for configuration. Key variables incl
 
 The application includes comprehensive load testing capabilities:
 
-1. **Start load testing:**
-   ```bash
-   docker-compose up locust
-   ```
-
-2. **Access Locust UI:**
+1. **Access Locust UI:**
    - Navigate to http://localhost:8089
    - Configure test parameters (users, spawn rate, duration)
    - Run performance tests
 
-3. **Test Scenarios:**
+2. **Test Scenarios:**
    - **Scenario 1**: Light load (10 users, 1 user/second, 5 minutes)
    - **Scenario 2**: Heavy load (50+ users, stress testing)
 
@@ -222,7 +218,7 @@ Two controlled scenarios were evaluated using the same input prompt in portugues
 
 ### **Scenario 1 – Low Load (10 Concurrent Users)**
 
-This baseline test evaluated latency and overhead under light traffic.  
+This baseline test evaluated latency and overhead under light traffic, running for 5 minutes with a spawn rate of 1 user per second.  
 The system processed requests smoothly, maintaining an average total latency **below 1.5 seconds** with **no failed requests**.  
 The API Gateway introduced minimal overhead (<100ms), and REST communication proved efficient.
 
@@ -248,7 +244,7 @@ The API Gateway introduced minimal overhead (<100ms), and REST communication pro
 
 ### **Scenario 2 – High Load (500 Concurrent Users)**
 
-The stress test simulated high concurrency to evaluate scalability and fault tolerance.  
+The stress test simulated high concurrency to evaluate scalability and fault tolerance, running for 10 minutes with a spawn rate of 50 users per second. 
 Throughput peaked at **~30 requests per second**, stabilizing after approximately 3 minutes.  
 However, **STT** emerged as the main bottleneck due to higher computational demands, resulting in increased latency and temporary saturation.
 
