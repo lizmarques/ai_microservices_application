@@ -263,7 +263,7 @@ However, **STT** emerged as the main bottleneck due to higher computational dema
 <br><br>
 
 <p align="center">
-  <img src="./images/graph_s2_failures_v3.png" alt="Failures per Endpoint" /><br>
+  <img src="./images/graph_s2_failures_v3.png" alt="Failures per Endpoint" width="80%" /><br>
   <em>Figure 6 – Total Failures per Endpoint (High Load)</em>
 </p>
 
